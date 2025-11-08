@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sinha_Care</title>
+<title>Sinhaaaa Care</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap');
 
@@ -84,7 +84,7 @@
     width: 90%;
     max-width: 600px;
     text-align: center;
-    background: #2a1a3d; /* deep dark purple */
+    background: #2a1a3d;
     color: #f78fb3;
     font-weight: bold;
     font-size: 1.1em;
@@ -128,7 +128,7 @@
 </style>
 </head>
 <body>
-<h1> Sinha Care 🌙</h1>
+<h1>🌙 Sinhaaaaa Care 🌙</h1>
 
 <div class="clock-container">
   <canvas id="analogClock" width="200" height="200"></canvas>
@@ -152,13 +152,13 @@
 
 <script>
 const meals = [
-  {time: "06:30", name: "Morning Detox 🌿", items: ["Warm water with lemon 🍋", "Optional: pinch of cinnamon or soaked methi seeds"]},
-  {time: "08:00", name: "Breakfast 🍳", items: ["Oats porridge with cinnamon & fruit 🍌", "2-egg vegetable omelette 🥚", "Herbal/green tea 🍵"]},
-  {time: "11:00", name: "Mid-Morning Snack 🥜", items: ["Handful of mixed nuts & seeds", "Optional 1 fruit 🍎", "Herbal tea 🍵"]},
-  {time: "14:00", name: "Lunch 🐟", items: ["Brown rice 🍚 or 2 millet rotis", "Grilled fish / egg curry / paneer", "Mixed vegetable sabzi 🥗", "Salad with lemon 🍋", "Chaas (buttermilk)"]},
-  {time: "17:00", name: "Evening Snack 🌰", items: ["Boiled egg 🥚 or roasted chana/makhana", "Green/herbal tea 🍵"]},
-  {time: "20:00", name: "Dinner 🥘", items: ["Grilled fish / paneer / tofu + sautéed vegetables", "Vegetable soup + 2 boiled eggs"]},
-  {time: "22:30", name: "Optional Night Drink 🥛", items: ["Warm turmeric milk (low-fat, no sugar) OR 1 tsp flaxseeds soaked in water"]}
+  {time: "06:30 AM", name: "Morning Detox 🌿", items: ["Warm water with lemon 🍋", "Optional: pinch of cinnamon or soaked methi seeds"]},
+  {time: "08:00 AM", name: "Breakfast 🍳", items: ["Oats porridge with cinnamon & fruit 🍌", "2-egg vegetable omelette 🥚", "Herbal/green tea 🍵"]},
+  {time: "11:00 AM", name: "Mid-Morning Snack 🥜", items: ["Handful of mixed nuts & seeds", "Optional 1 fruit 🍎", "Herbal tea 🍵"]},
+  {time: "02:00 PM", name: "Lunch 🐟", items: ["Brown rice 🍚 or 2 millet rotis", "Grilled fish / egg curry / paneer", "Mixed vegetable sabzi 🥗", "Salad with lemon 🍋", "Chaas (buttermilk)"]},
+  {time: "05:00 PM", name: "Evening Snack 🌰", items: ["Boiled egg 🥚 or roasted chana/makhana", "Green/herbal tea 🍵"]},
+  {time: "08:00 PM", name: "Dinner 🥘", items: ["Grilled fish / paneer / tofu + sautéed vegetables", "Vegetable soup + 2 boiled eggs"]},
+  {time: "10:30 PM", name: "Optional Night Drink 🥛", items: ["Warm turmeric milk (low-fat, no sugar) OR 1 tsp flaxseeds soaked in water"]}
 ];
 
 function getDhakaTime() {
@@ -168,34 +168,50 @@ function getDhakaTime() {
   return new Date(utc + dhakaOffset);
 }
 
+function format12Hour(date){
+  let hours = date.getHours();
+  const minutes = date.getMinutes().toString().padStart(2,'0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // 0 => 12
+  return `${hours}:${minutes} ${ampm}`;
+}
+
+function convertTimeTo24(time12h){
+  const [time, modifier] = time12h.split(' ');
+  let [hours, minutes] = time.split(':').map(Number);
+  if(modifier === 'PM' && hours !== 12) hours += 12;
+  if(modifier === 'AM' && hours === 12) hours = 0;
+  return {hours, minutes};
+}
+
 function getCurrentMeal() {
   const now = getDhakaTime();
-  const hours = now.getHours().toString().padStart(2,'0');
-  const minutes = now.getMinutes().toString().padStart(2,'0');
-  const currentTime = `${hours}:${minutes}`;
+  const currentTime = format12Hour(now);
 
   let current = null;
   let next = null;
 
-  if(currentTime < meals[0].time || currentTime >= meals[meals.length-1].time){
-    current = {name: "Sleeping / Night Rest 😴", items: ["Rest well!"]};
-    next = meals[0];
-    return {current, next};
-  }
+  const nowH = now.getHours();
+  const nowM = now.getMinutes();
 
-  for(let i = 0; i < meals.length-1; i++){
-    if(currentTime >= meals[i].time && currentTime < meals[i+1].time){
-      current = meals[i];
-      next = meals[i+1];
+  for(let i = 0; i < meals.length; i++){
+    const meal24 = convertTimeTo24(meals[i].time);
+    if(nowH < meal24.hours || (nowH === meal24.hours && nowM < meal24.minutes)){
+      next = meals[i];
+      current = i === 0 ? {name: "Sleeping / Night Rest 😴", items:["Rest well!"]} : meals[i-1];
       break;
     }
   }
+  if(!current) current = meals[meals.length-1];
+  if(!next) next = meals[0];
+
   return {current, next};
 }
 
 function updateMeals(){
   const now = getDhakaTime();
-  const currentFormattedTime = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  const currentFormattedTime = format12Hour(now);
   document.getElementById("current-time").innerText = `Time: ${currentFormattedTime}`;
 
   const {current, next} = getCurrentMeal();
@@ -208,9 +224,7 @@ function updateMeals(){
 
 function mealAlert(){
   const now = getDhakaTime();
-  const hours = now.getHours().toString().padStart(2,'0');
-  const minutes = now.getMinutes().toString().padStart(2,'0');
-  const currentTime = `${hours}:${minutes}`;
+  const currentTime = format12Hour(now);
 
   meals.forEach(meal=>{
     if(meal.time === currentTime){
@@ -227,9 +241,12 @@ function drawClock() {
   const draw = () => {
     ctx.clearRect(-radius, -radius, canvas.width, canvas.height);
     const now = getDhakaTime();
-    const hour = now.getHours();
+    let hour = now.getHours();
     const minute = now.getMinutes();
     const second = now.getSeconds();
+
+    
+    hour = hour % 12;
 
     ctx.beginPath();
     ctx.arc(0, 0, radius-5, 0, 2*Math.PI);
@@ -271,7 +288,7 @@ function drawClock() {
 
     const secondPos = second * Math.PI/30;
     const minutePos = (minute + second/60) * Math.PI/30;
-    const hourPos = (hour%12 + minute/60) * Math.PI/6;
+    const hourPos = (hour + minute/60) * Math.PI/6;
 
     drawHand(hourPos, radius*0.5, 6, "#f5a623");
     drawHand(minutePos, radius*0.75, 4, "#f78fb3");
